@@ -31,6 +31,7 @@ A super simple FastAPI application that allows students to view and sign up for 
 | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
 | GET    | `/activities`                                                     | Get all activities with their details and current participant count |
 | POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity                                             |
+| POST   | `/activities/import` (multipart/form-data CSV upload)            | Import activities from a CSV file and persist (see format below)    |
 
 ## Data Model
 
@@ -47,4 +48,22 @@ The application uses a simple data model with meaningful identifiers:
    - Name
    - Grade level
 
-All data is stored in memory, which means data will be reset when the server restarts.
+Activity data is loaded from `activities.json` if present and is
+written back to that file whenever new activities are added or imported.
+This gives the application a basic, file‑based persistence layer so that
+data survives restarts and can be updated without editing the source code.
+
+### CSV import format
+
+The `/activities/import` endpoint accepts a UTF-8 CSV file with these headers:
+
+```
+name,description,schedule,max_participants,participants
+```
+
+* `name` is required and serves as the activity identifier.
+* `participants` may be a comma‑ or semicolon‑separated list of emails.
+
+Rows matching an existing activity will update it; otherwise a new
+activity record will be created.  This simple pipeline lets administrators
+prepare spreadsheets and push them into the system without touching code.
